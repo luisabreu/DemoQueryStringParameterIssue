@@ -1,0 +1,48 @@
+@using DemoQueryStringParameterIssue.ViewModels
+@attribute [Route("")]
+
+@implements IDisposable
+
+<PageTitle>Page 1</PageTitle>
+
+<p>Enter something on the input and click the button to simulate a search. 
+       Doing that ends up submitting a form which runs a search and then updates the uri
+       through the navigation service. Since the page is the same, it will simply refresh the
+       qs (confirmed by the binding operation) and run parameter set again (there's a flag which 
+       controls the loading behavior of the page).
+       Then go to page 2 through the menu and, as you can see, there's no query string in the uri 
+       but the page's field is set to the "previous" qs value that was defined for the previous uri.</p>
+
+<EditForm EditContext="ViewModel.EditContext.EditContext"
+              OnValidSubmit="ViewModel.SearchAndUpdateUriAsync">
+    <InputText @bind-Value="ViewModel.Model.Info"></InputText>
+    <button class="btn btn-primary" type="submit">Navigate</button>
+</EditForm>
+
+<p>Current qs parameter value: <b>@(Info ?? "---")</b></p>
+
+
+@code {
+    
+    [Inject]
+    public IPage1ViewModel ViewModel { get; set; } = default!;
+    
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "id")]
+    public string? Info { get; set; }
+
+    protected override async Task OnParametersSetAsync() {
+        Console.WriteLine($"Page1 Info before: {Info}");
+        Console.WriteLine($"Page1 Model before: {ViewModel.Model.Info}");
+        
+        await ViewModel.UpdateFromParametersAsync(Info);
+        
+        Console.WriteLine($"Page1 Info after: {Info}");
+        Console.WriteLine($"Page1 Model after: {ViewModel.Model.Info}");
+    }
+
+    public void Dispose() {
+        ViewModel.Dispose( );
+    }
+
+}

@@ -1,0 +1,44 @@
+@using DemoQueryStringParameterIssue.ViewModels
+
+@attribute [Route("Page2")]
+
+@implements IDisposable
+
+<PageTitle>Page 2</PageTitle>
+
+
+<p>You can do the same procedure as the one described on page 1 and it the behavior is the same.</p>
+
+<EditForm EditContext="ViewModel.EditContext.EditContext"
+              OnValidSubmit="ViewModel.SearchAndUpdateUriAsync">
+    <InputText @bind-Value="ViewModel.Model.Info"></InputText>
+    <button class="btn btn-primary" type="submit">Navigate</button>
+</EditForm>
+
+<p>Current qs parameter value: <b>@(Info ?? "---")</b></p>
+
+
+@code {
+    
+    [Inject]
+    public IPage2ViewModel ViewModel { get; set; } = default!;
+    
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "id")]
+    public string? Info { get; set; }
+
+    protected override async Task OnParametersSetAsync() {
+        Console.WriteLine($"Page2 Info before: {Info}");
+        Console.WriteLine($"Page2 Model before: {ViewModel.Model.Info}");
+        
+        await ViewModel.UpdateFromParametersAsync(Info);
+        
+        Console.WriteLine($"Page2 Info after: {Info}");
+        Console.WriteLine($"Page2 Model after: {ViewModel.Model.Info}");
+    }
+
+    public void Dispose() {
+        ViewModel.Dispose( );
+    }
+
+}
